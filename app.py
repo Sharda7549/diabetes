@@ -1,7 +1,7 @@
 import streamlit as st
 import numpy as np
 import os
-import joblib  # use joblib for sklearn models
+import pickle  # use pickle to load the model
 
 # -------------------------------
 # Load your trained diabetes model safely
@@ -9,7 +9,8 @@ import joblib  # use joblib for sklearn models
 current_dir = os.path.dirname(os.path.abspath(__file__))
 model_path = os.path.join(current_dir, "diabetes.pkl")
 
-model = joblib.load(model_path)
+with open(model_path, "rb") as file:
+    model = pickle.load(file)
 
 # -------------------------------
 # Streamlit Page Setup
