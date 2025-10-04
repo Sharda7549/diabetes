@@ -1,11 +1,20 @@
 import streamlit as st
 import pickle
 import numpy as np
+import os
 
-# Load your trained diabetes model
-model = pickle.load(open("diabetes.pkl", "rb"))
+# -------------------------------
+# Load your trained diabetes model safely
+# -------------------------------
+current_dir = os.path.dirname(os.path.abspath(__file__))
+model_path = os.path.join(current_dir, "diabetes.pkl")
 
-# Streamlit page setup
+with open(model_path, "rb") as file:
+    model = pickle.load(file)
+
+# -------------------------------
+# Streamlit Page Setup
+# -------------------------------
 st.set_page_config(page_title="Diabetes Prediction App", page_icon="🩺", layout="centered")
 
 # Custom CSS with gradient background
@@ -43,11 +52,15 @@ input, .stNumberInput input {
 """
 st.markdown(page_bg, unsafe_allow_html=True)
 
-# Title and description
+# -------------------------------
+# Title & Description
+# -------------------------------
 st.markdown("<h1 style='text-align:center;'>🩺 Diabetes Prediction App</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align:center; font-size:18px;'>Enter patient details below to predict the likelihood of diabetes.</p>", unsafe_allow_html=True)
 
-# Input form
+# -------------------------------
+# Input Form
+# -------------------------------
 with st.form("prediction_form"):
     col1, col2 = st.columns(2)
 
@@ -65,22 +78,28 @@ with st.form("prediction_form"):
 
     submit = st.form_submit_button("🔍 Predict")
 
+# -------------------------------
 # Prediction
+# -------------------------------
 if submit:
+    # Prepare feature vector
     features = np.array([[Glucose_BMI_Interaction, Glucose, BMI,
                           BMI_DPF_Interaction, Age, Pregnancies_Age_Interaction,
                           DiabetesPedigreeFunction, BloodPressure]])
     
+    # Prediction
     prediction = model.predict(features)[0]
 
     # Check probability if available
     proba = model.predict_proba(features)[0][1] if hasattr(model, "predict_proba") else None
 
+    # Show result
     if prediction == 1:
         st.markdown("<h3 style='text-align:center; color:#ff4d4d;'>⚠️ High Risk: Likely Diabetic</h3>", unsafe_allow_html=True)
     else:
         st.markdown("<h3 style='text-align:center; color:#00ff99;'>✅ Low Risk: Unlikely Diabetic</h3>", unsafe_allow_html=True)
 
+    # Show probability as progress bar
     if proba is not None:
         st.progress(int(proba*100))
         st.markdown(f"<p style='text-align:center; font-size:18px;'>Prediction confidence: <b>{proba*100:.2f}%</b></p>", unsafe_allow_html=True)
